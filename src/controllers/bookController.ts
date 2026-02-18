@@ -1,7 +1,6 @@
 import type { Request, Response } from 'express';
-
-import type { Book } from '../types/library';
 import type { CreateBookDto, ReplaceBookDto } from '../schemas/book.schema';
+import type { Book } from '../types/library';
 
 const BOOKS: Book[] = [
   {

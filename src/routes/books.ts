@@ -1,7 +1,5 @@
 import express from 'express';
-
 import * as BookController from '../controllers/bookController';
-
 import { validate } from '../middleware/validate';
 import { createBookSchema, replaceBookSchema } from '../schemas/book.schema';
 
