@@ -21,7 +21,6 @@ export const createBookSchema = z.object({
     .nonempty('ISBN is required')
     .min(10, 'ISBN must be at least 10 characters')
     .max(20, 'ISBN must be less than 20 characters'),
-  available: z.boolean().nonoptional('Available status is required'),
 });
 
 export const replaceBookSchema = z.object({
@@ -41,7 +40,6 @@ export const replaceBookSchema = z.object({
     .string()
     .min(10, 'ISBN must be at least 10 characters')
     .max(20, 'ISBN must be less than 20 characters'),
-  available: z.boolean(),
 });
 
 export type CreateBookDto = z.infer<typeof createBookSchema>;
