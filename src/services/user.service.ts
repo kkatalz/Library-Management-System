@@ -1,5 +1,5 @@
 import { CreateUserDto } from '../schemas/user.schema';
-import { USERS } from '../storage/user.storage';
+import { USERS, saveUsers } from '../storage/user.storage';
 import { User } from '../types/user.type';
 
 export function getAll(): User[] {
@@ -28,6 +28,7 @@ export function create(dto: CreateUserDto): User {
   };
 
   USERS.push(user);
+  saveUsers();
 
   return user;
 }

@@ -1,5 +1,5 @@
 import type { CreateBookDto, ReplaceBookDto } from '../schemas/book.schema';
-import { BOOKS } from '../storage/books.storage';
+import { BOOKS, saveBooks } from '../storage/books.storage';
 import { LOANS } from '../storage/loan.storage';
 import { Book } from '../types/book.type';
 import { STATUS } from '../types/loan.type';
@@ -28,6 +28,7 @@ export function create(dto: CreateBookDto): Book {
   };
 
   BOOKS.push(book);
+  saveBooks();
 
   return book;
 }
@@ -45,6 +46,7 @@ export function replace(id: string, dto: ReplaceBookDto): Book {
     ...dto,
     available: BOOKS[bookIndex].available,
   };
+  saveBooks();
 
   return BOOKS[bookIndex];
 }
@@ -65,6 +67,7 @@ export function remove(id: string): Book {
   }
 
   const deletedBook = BOOKS.splice(bookIndex, 1);
+  saveBooks();
 
   return deletedBook[0];
 }

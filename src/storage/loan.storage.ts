@@ -1,30 +1,16 @@
-import { Loan, STATUS } from '../types/loan.type';
-import { BOOKS } from './books.storage';
-import { USERS } from './user.storage';
+import { Loan } from '../types/loan.type';
+import { loadJson, saveJson } from './json-storage';
 
-export const LOANS: Loan[] = [
-  {
-    id: '1',
-    userId: USERS[0].id,
-    bookId: BOOKS[0].id,
-    loanDate: new Date('2026-01-01'),
-    returnDate: new Date('2026-01-15'),
-    status: STATUS.RETURNED,
-  },
-  {
-    id: '2',
-    userId: USERS[1].id,
-    bookId: BOOKS[1].id,
-    loanDate: new Date('2026-02-01'),
-    returnDate: null,
-    status: STATUS.ACTIVE,
-  },
-  {
-    id: '3',
-    userId: USERS[2].id,
-    bookId: BOOKS[2].id,
-    loanDate: new Date('2026-03-01'),
-    returnDate: new Date('2026-03-10'),
-    status: STATUS.RETURNED,
-  },
-];
+function parseLoans(raw: any[]): Loan[] {
+  return raw.map((loan) => ({
+    ...loan,
+    loanDate: new Date(loan.loanDate),
+    returnDate: loan.returnDate ? new Date(loan.returnDate) : null,
+  }));
+}
+
+export const LOANS: Loan[] = parseLoans(loadJson('loans.json'));
+
+export function saveLoans(): void {
+  saveJson('loans.json', LOANS);
+}

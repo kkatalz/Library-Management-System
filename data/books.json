@@ -1,0 +1,34 @@
+[
+  {
+    "id": "2",
+    "title": "Book 2",
+    "author": "Author 2",
+    "year": 2021,
+    "isbn": "0987654321",
+    "available": false
+  },
+  {
+    "id": "3",
+    "title": "Book 3",
+    "author": "Author 3",
+    "year": 2022,
+    "isbn": "1111111111",
+    "available": true
+  },
+  {
+    "id": "4",
+    "title": "Skrek",
+    "author": "Author 1",
+    "year": 2008,
+    "isbn": "978-0743273565",
+    "available": false
+  },
+  {
+    "id": "5",
+    "title": "The Great Gatsby",
+    "author": "F. Scott Fitzgerald",
+    "year": 1925,
+    "isbn": "1212122121",
+    "available": true
+  }
+]

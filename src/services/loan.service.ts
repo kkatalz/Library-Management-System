@@ -1,6 +1,6 @@
 import { CreateLoanDto } from '../schemas/loan.schema';
-import { BOOKS } from '../storage/books.storage';
-import { LOANS } from '../storage/loan.storage';
+import { BOOKS, saveBooks } from '../storage/books.storage';
+import { LOANS, saveLoans } from '../storage/loan.storage';
 import { USERS } from '../storage/user.storage';
 import { Loan, STATUS } from '../types/loan.type';
 
@@ -36,6 +36,8 @@ export function takeLoan(dto: CreateLoanDto): Loan {
   book.available = false;
 
   LOANS.push(loan);
+  saveLoans();
+  saveBooks();
 
   return loan;
 }
@@ -53,6 +55,9 @@ export function returnLoan(id: string): Loan {
 
   const book = BOOKS.find((book) => book.id === loan.bookId);
   if (book) book.available = true;
+
+  saveLoans();
+  saveBooks();
 
   return loan;
 }
