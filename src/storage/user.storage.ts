@@ -1,8 +1,10 @@
-import { User } from '../types/user.type';
-import { loadJson, saveJson } from './json-storage';
+// // Old JSON storage layer (replaced by Prisma + SQLite) ---
 
-export const USERS: User[] = loadJson<User>('users.json');
+// import { User } from '../types/user.type';
+// import { loadJson, saveJson } from './json-storage';
 
-export function saveUsers(): void {
-  saveJson('users.json', USERS);
-}
+// export const USERS: User[] = loadJson<User>('users.json');
+
+// export function saveUsers(): void {
+//   saveJson('users.json', USERS);
+// }
