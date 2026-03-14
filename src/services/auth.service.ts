@@ -58,11 +58,11 @@ export async function login(dto: LoginDTO) {
   );
 
   return {
-    accessToken: token,
+    token: token,
     user: {
       id: user.id,
-      name: user.name,
       email: user.email,
+      name: user.name,
       role: user.role,
     },
   };
