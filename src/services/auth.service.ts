@@ -5,6 +5,22 @@ import { StringValue } from 'ms';
 import prisma from '../lib/prisma';
 import CONFIG from '../config';
 import type { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
+import type { User } from '../generated/prisma/client';
+
+function generateToken(user: User) {
+  return jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    },
+    CONFIG.jwtSecret,
+    {
+      expiresIn: CONFIG.jwtExpiresIn as StringValue,
+    },
+  );
+}
 
 export async function register(dto: RegisterDTO) {
   const { name, email, password } = dto;
@@ -19,13 +35,25 @@ export async function register(dto: RegisterDTO) {
 
   const hashedPassword = await bcrypt.hash(password, 12);
 
-  await prisma.user.create({
+  const user = await prisma.user.create({
     data: {
       name,
       email,
       passwordHash: hashedPassword,
     },
   });
+
+  const token = generateToken(user);
+
+  return {
+    token,
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    },
+  };
 }
 
 export async function login(dto: LoginDTO) {
@@ -45,20 +73,10 @@ export async function login(dto: LoginDTO) {
     throw new Error('Email or password is incorrect');
   }
 
-  const token = jwt.sign(
-    {
-      id: user.id,
-      name: user.name,
-      role: user.role,
-    },
-    CONFIG.jwtSecret,
-    {
-      expiresIn: CONFIG.jwtExpiresIn as StringValue,
-    },
-  );
+  const token = generateToken(user);
 
   return {
-    token: token,
+    token,
     user: {
       id: user.id,
       email: user.email,
