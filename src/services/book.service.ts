@@ -1,73 +1,69 @@
 import type { CreateBookDto, ReplaceBookDto } from '../schemas/book.schema';
-import { BOOKS, saveBooks } from '../storage/books.storage';
-import { LOANS } from '../storage/loan.storage';
-import { Book } from '../types/book.type';
-import { STATUS } from '../types/loan.type';
+import prisma from '../lib/prisma';
+import { Book, LoanStatus } from '../generated/prisma/client';
 
-export function getAll(): Book[] {
-  return BOOKS;
+export async function getAll(): Promise<Book[]> {
+  return prisma.book.findMany();
 }
 
-export function getById(id: string): Book {
-  const book = BOOKS.find((book) => book.id === id);
+export async function getById(id: string): Promise<Book> {
+  const book = await prisma.book.findUnique({ where: { id } });
 
   if (!book) throw new Error('Book not found');
 
   return book;
 }
 
-export function create(dto: CreateBookDto): Book {
-  const bookExists = BOOKS.some((book) => book.isbn === dto.isbn);
+export async function create(dto: CreateBookDto): Promise<Book> {
+  const bookExists = await prisma.book.findUnique({
+    where: { isbn: dto.isbn },
+  });
 
   if (bookExists) throw new Error('Book with this ISBN already exists');
 
-  const book: Book = {
-    id: (BOOKS.length + 1).toString(),
-    ...dto,
-    available: true,
-  };
-
-  BOOKS.push(book);
-  saveBooks();
-
-  return book;
+  return prisma.book.create({
+    data: {
+      ...dto,
+      available: true,
+    },
+  });
 }
 
-export function replace(id: string, dto: ReplaceBookDto): Book {
-  const bookIndex = BOOKS.findIndex((book) => book.id === id);
+export async function replace(id: string, dto: ReplaceBookDto): Promise<Book> {
+  const book = await prisma.book.findUnique({ where: { id } });
 
-  if (bookIndex === -1) throw new Error('Book not found');
+  if (!book) throw new Error('Book not found');
 
-  const bookExists = BOOKS.some((book) => book.isbn === dto.isbn);
-  if (bookExists) throw new Error('Book with this ISBN already exists');
+  const duplicate = await prisma.book.findUnique({ where: { isbn: dto.isbn } });
+  if (duplicate && duplicate.id !== id) {
+    throw new Error('Book with this ISBN already exists');
+  }
 
-  BOOKS[bookIndex] = {
-    ...BOOKS[bookIndex],
-    ...dto,
-    available: BOOKS[bookIndex].available,
-  };
-  saveBooks();
-
-  return BOOKS[bookIndex];
+  return prisma.book.update({
+    where: { id },
+    data: {
+      title: dto.title,
+      author: dto.author,
+      year: dto.year,
+      isbn: dto.isbn,
+    },
+  });
 }
 
-export function remove(id: string): Book {
-  const bookIndex = BOOKS.findIndex((book) => book.id === id);
+export async function remove(id: string): Promise<Book> {
+  const book = await prisma.book.findUnique({ where: { id } });
 
-  if (bookIndex === -1) throw new Error('Book not found');
+  if (!book) throw new Error('Book not found');
 
-  const bookIsLent = LOANS.some(
-    (loan) => loan.bookId === id && loan.status === STATUS.ACTIVE,
-  );
+  const activeLoan = await prisma.loan.findFirst({
+    where: { bookId: id, status: LoanStatus.ACTIVE },
+  });
 
-  if (bookIsLent) {
+  if (activeLoan) {
     throw new Error(
       'Can not delete this book because it is currently lent out',
     );
   }
 
-  const deletedBook = BOOKS.splice(bookIndex, 1);
-  saveBooks();
-
-  return deletedBook[0];
+  return prisma.book.delete({ where: { id } });
 }

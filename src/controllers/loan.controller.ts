@@ -1,18 +1,20 @@
 import type { Request, Response } from 'express';
 import { CreateLoanDto } from '../schemas/loan.schema';
 import * as LoanService from '../services/loan.service';
-import { LoanParams } from '../types/loan.type';
 
-export function getLoans(req: Request, res: Response) {
-  res.json({ data: LoanService.getAll() });
+export async function getLoans(req: Request, res: Response) {
+  res.json({ data: await LoanService.getAll() });
 }
 
-export function createLoan(req: Request<{}, {}, CreateLoanDto>, res: Response) {
-  const loan = LoanService.takeLoan(req.body);
+export async function createLoan(
+  req: Request<{}, {}, CreateLoanDto>,
+  res: Response,
+) {
+  const loan = await LoanService.takeLoan(req.body);
   res.status(201).json({ data: loan });
 }
 
-export function returnLoan(req: Request<LoanParams>, res: Response) {
-  const loan = LoanService.returnLoan(req.params.id);
+export async function returnLoan(req: Request<{ id: string }>, res: Response) {
+  const loan = await LoanService.returnLoan(req.params.id);
   res.json({ data: loan });
 }
