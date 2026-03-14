@@ -6,7 +6,11 @@ export async function getAll(): Promise<Loan[]> {
   return prisma.loan.findMany();
 }
 
-export async function takeLoan(dto: CreateLoanDto): Promise<Loan> {
+export async function getByUserId(userId: string): Promise<Loan[]> {
+  return prisma.loan.findMany({ where: { userId } });
+}
+
+export async function takeLoan(dto: CreateLoanDto & { userId: string }): Promise<Loan> {
   const user = await prisma.user.findUnique({ where: { id: dto.userId } });
   if (!user) throw new Error('User not found');
 
