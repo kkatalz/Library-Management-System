@@ -6,18 +6,12 @@ export const registerSchema = z.object({
     .min(1, 'Name is required')
     .max(100, 'Name must be less than 100 characters'),
   email: z.email(),
-  password: z
-    .string()
-    .min(8, 'Password should be between 8 to 16 characters')
-    .max(16, 'Password should be between 8 to 16 characters'),
+  password: z.string().min(8, 'Password should be at least 8 characters'),
 });
 
 export const loginSchema = z.object({
   email: z.email(),
-  password: z
-    .string()
-    .min(8, 'Password should be between 8 to 16 characters')
-    .max(16, 'Password should be between 8 to 16 characters'),
+  password: z.string().min(8, 'Password should be at least 8 characters'),
 });
 
 export type RegisterDTO = z.infer<typeof registerSchema>;
