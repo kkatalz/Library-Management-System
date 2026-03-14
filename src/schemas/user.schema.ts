@@ -8,6 +8,10 @@ export const createUserSchema = z.object({
   email: z
     .email('Invalid email address')
     .max(100, 'Email must be less than 100 characters'),
+  passwordHash: z
+    .string()
+    .min(8, 'Password must be between 8 and 16 characters')
+    .max(16, 'Password must be between 8 and 16 characters'),
 });
 
 export const replaceUserSchema = z.object({
@@ -18,6 +22,10 @@ export const replaceUserSchema = z.object({
   email: z
     .email('Invalid email address')
     .max(100, 'Email must be less than 100 characters'),
+  passwordHash: z
+    .string()
+    .min(8, 'Password must be between 8 and 16 characters')
+    .max(16, 'Password must be between 8 and 16 characters'),
 });
 
 export type CreateUserDto = z.infer<typeof createUserSchema>;
