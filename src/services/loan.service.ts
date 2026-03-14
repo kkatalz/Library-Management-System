@@ -37,9 +37,11 @@ export async function takeLoan(dto: CreateLoanDto & { userId: string }): Promise
   });
 }
 
-export async function returnLoan(id: string): Promise<Loan> {
+export async function returnLoan(id: string, userId: string): Promise<Loan> {
   const loan = await prisma.loan.findUnique({ where: { id } });
   if (!loan) throw new Error('Loan not found');
+
+  if (loan.userId !== userId) throw new Error('You can only return your own loans');
 
   if (loan.status === LoanStatus.RETURNED)
     throw new Error('Loan already returned');

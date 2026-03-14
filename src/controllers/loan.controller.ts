@@ -22,7 +22,8 @@ export async function createLoan(req: Request, res: Response) {
   res.status(201).json({ data: loan });
 }
 
-export async function returnLoan(req: Request<{ id: string }>, res: Response) {
-  const loan = await LoanService.returnLoan(req.params.id);
+export async function returnLoan(req: Request, res: Response) {
+  const user = (req as RequestWithUser).user;
+  const loan = await LoanService.returnLoan(req.params.id as string, user.id);
   res.json({ data: loan });
 }
