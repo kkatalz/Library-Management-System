@@ -1,14 +1,11 @@
 import express from 'express';
 import * as UserController from '../controllers/user.controller';
-import { validate } from '../middleware/validate';
-import { createUserSchema } from '../schemas/user.schema';
+import { auth, adminOnly } from '../middleware/auth';
 
 const router = express.Router();
 
-router.get('/', UserController.getUsers);
+router.get('/', auth, adminOnly, UserController.getUsers);
 
-router.get('/:id', UserController.getUserById);
-
-router.post('/', validate(createUserSchema), UserController.createUser);
+router.get('/:id', auth, UserController.getUserById);
 
 export default router;
