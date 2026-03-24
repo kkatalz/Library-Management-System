@@ -8,7 +8,7 @@ import { HttpError } from '../middleware/error';
 import type { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
 import type { User } from '../generated/prisma/client';
 
-function generateToken(user: User) {
+export function generateToken(user: User) {
   return jwt.sign(
     {
       id: user.id,
