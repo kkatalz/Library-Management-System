@@ -1,6 +1,7 @@
 import { CreateUserDto } from '../schemas/user.schema';
 import prisma from '../lib/prisma';
 import { User } from '../generated/prisma/client';
+import { HttpError } from '../middleware/error';
 
 type UserResponseDto = Omit<User, 'passwordHash'>;
 
@@ -17,7 +18,7 @@ export async function getAll(): Promise<UserResponseDto[]> {
 export async function getById(id: string): Promise<UserResponseDto> {
   const user = await prisma.user.findUnique({ where: { id } });
 
-  if (!user) throw new Error('User not found');
+  if (!user) throw new HttpError(404, 'User not found');
 
   const { passwordHash, ...userWithoutPasswordHash } = user;
 
@@ -30,7 +31,7 @@ export async function create(dto: CreateUserDto): Promise<UserResponseDto> {
   });
 
   if (userExists)
-    throw new Error('User with this name and email already exists');
+    throw new HttpError(409, 'User with this name and email already exists');
 
   return prisma.user.create({
     data: {

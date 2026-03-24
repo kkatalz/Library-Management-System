@@ -1,13 +1,13 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express from 'express';
 import routes from './routes';
+import { notFound, errorHandler } from './middleware/error';
 
 const app = express();
 
 app.use(express.json());
 app.use('/api', routes);
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  res.status(400).json({ error: err.message });
-});
+app.use(notFound);
+app.use(errorHandler);
 
 export default app;

@@ -4,6 +4,7 @@ import { StringValue } from 'ms';
 
 import prisma from '../lib/prisma';
 import CONFIG from '../config';
+import { HttpError } from '../middleware/error';
 import type { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
 import type { User } from '../generated/prisma/client';
 
@@ -30,7 +31,7 @@ export async function register(dto: RegisterDTO) {
   });
 
   if (existingUser !== null) {
-    throw new Error('Email is already registered');
+    throw new HttpError(409, 'Email is already registered');
   }
 
   const hashedPassword = await bcrypt.hash(password, 12);
@@ -64,13 +65,13 @@ export async function login(dto: LoginDTO) {
   });
 
   if (user === null) {
-    throw new Error('Email or password is incorrect');
+    throw new HttpError(401, 'Email or password is incorrect');
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
   if (isPasswordValid !== true) {
-    throw new Error('Email or password is incorrect');
+    throw new HttpError(401, 'Email or password is incorrect');
   }
 
   const token = generateToken(user);
