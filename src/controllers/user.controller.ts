@@ -23,3 +23,21 @@ export async function getUserById(req: Request, res: Response) {
   const result = await UserService.getById(id);
   res.json({ data: result });
 }
+
+
+export async function uploadAvatar(req: Request, res: Response) {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const user = (req as RequestWithUser).user;
+  const { avatarUrl } = await UserService.updateAvatar(user.id, req.file.filename);
+
+  res.json({ message: 'Аватарку успішно оновлено.', avatarUrl });
+}
+
+export async function deleteAvatar(req: Request, res: Response) {
+  const user = (req as RequestWithUser).user;
+  await UserService.deleteAvatar(user.id);
+  res.json({ message: 'Аватарку видалено.' });
+}

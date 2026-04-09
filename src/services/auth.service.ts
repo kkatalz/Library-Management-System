@@ -7,6 +7,9 @@ import CONFIG from '../config';
 import { HttpError } from '../middleware/error';
 import type { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
 import type { User } from '../generated/prisma/client';
+import { PasswordResetRequestDTO } from '../schemas/passwordReset.schema';
+import sendMail from '../utils/sendMail';
+import { ResetPasswordDTO } from '../schemas/resetPassword.schema';
 
 export function generateToken(user: User) {
   return jwt.sign(
@@ -53,6 +56,7 @@ export async function register(dto: RegisterDTO) {
       email: user.email,
       name: user.name,
       role: user.role,
+      avatarUrl: user.avatarUrl,
     },
   };
 }
@@ -83,6 +87,68 @@ export async function login(dto: LoginDTO) {
       email: user.email,
       name: user.name,
       role: user.role,
+      avatarUrl: user.avatarUrl,
     },
   };
+}
+
+export async function requestPasswordReset(dto: PasswordResetRequestDTO) {
+  const { email } = dto;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (user) {
+    const resetToken = jwt.sign({ email: user.email }, CONFIG.jwtSecret, {
+      expiresIn: '15m',
+    });
+
+    try {
+      await sendMail({
+        to: user.email,
+        subject: 'Reset password',
+        text: `To reset password please open this link: http://localhost:8080/api/auth/reset-password?token=${resetToken}`,
+        html: `<p>To reset password please open this <a href="http://localhost:8080/api/auth/reset-password?token=${resetToken}">link</a></p>`,
+      });
+    } catch (err) {
+      console.error('Failed to send email:', err);
+      throw err;
+    }
+  }
+
+  return;
+}
+
+export async function resetPassword(dto: ResetPasswordDTO) {
+  const { token, newPassword } = dto;
+
+  let decoded: { email: string };
+
+  try {
+    decoded = jwt.verify(token, CONFIG.jwtSecret) as { email: string };
+  } catch (err) {
+    if (
+      err instanceof jwt.JsonWebTokenError &&
+      err.name === 'TokenExpiredError'
+    )
+      throw new HttpError(400, 'Code is expired');
+
+    throw new HttpError(400, 'Code is not valid');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: decoded.email },
+  });
+
+  if (user === null) {
+    throw new HttpError(404, 'User not found');
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+  await prisma.user.update({
+    where: { email: decoded.email },
+    data: { passwordHash: hashedPassword },
+  });
 }

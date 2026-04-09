@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { CreateUserDto } from '../schemas/user.schema';
 import prisma from '../lib/prisma';
 import { User } from '../generated/prisma/client';
@@ -37,5 +39,53 @@ export async function create(dto: CreateUserDto): Promise<UserResponseDto> {
     data: {
       ...dto,
     },
+  });
+}
+
+function deleteFileIfExists(filePath: string) {
+  try {
+    fs.unlinkSync(filePath);
+  } catch {
+    // file may not exist, ignore
+  }
+}
+
+export async function updateAvatar(
+  userId: string,
+  filename: string,
+): Promise<{ avatarUrl: string }> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new HttpError(404, 'User not found');
+
+  // Delete old avatar file if exists
+  if (user.avatarUrl) {
+    const oldPath = path.join(process.cwd(), user.avatarUrl);
+    deleteFileIfExists(oldPath);
+  }
+
+  const avatarUrl = `/uploads/avatars/${filename}`;
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { avatarUrl }, 
+  });
+
+  return { avatarUrl };
+}
+
+export async function deleteAvatar(userId: string): Promise<void> {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new HttpError(404, 'User not found');
+
+  if (!user.avatarUrl) {
+    throw new HttpError(404, 'No avatar to delete');
+  }
+
+  const filePath = path.join(process.cwd(), user.avatarUrl);
+  deleteFileIfExists(filePath);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { avatarUrl: null },
   });
 }
