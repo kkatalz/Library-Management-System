@@ -111,12 +111,6 @@ export async function requestPasswordReset(dto: PasswordResetRequestDTO) {
         text: `To reset password please open this link: http://localhost:8080/api/auth/reset-password?token=${resetToken}`,
         html: `<p>To reset password please open this <a href="http://localhost:8080/api/auth/reset-password?token=${resetToken}">link</a></p>`,
       });
-      console.log(
-        'Email sent successfully to:',
-        user.email,
-        'From:',
-        CONFIG.senderEmail,
-      );
     } catch (err) {
       console.error('Failed to send email:', err);
       throw err;
@@ -129,37 +123,32 @@ export async function requestPasswordReset(dto: PasswordResetRequestDTO) {
 export async function resetPassword(dto: ResetPasswordDTO) {
   const { token, newPassword } = dto;
 
-  jwt.verify(token, CONFIG.jwtSecret, async (err, decoded) => {
-    if (err) {
-      if (err.name === 'JsonWebTokenError')
-        throw new HttpError(400, 'Code is not valid'); // I use 400 because the task says so, but 401 would be more appropriate.
+  let decoded: { email: string };
 
-      if (err.name === 'TokenExpiredError')
-        throw new HttpError(400, 'Code is expired');
+  try {
+    decoded = jwt.verify(token, CONFIG.jwtSecret) as { email: string };
+  } catch (err) {
+    if (
+      err instanceof jwt.JsonWebTokenError &&
+      err.name === 'TokenExpiredError'
+    )
+      throw new HttpError(400, 'Code is expired');
 
-      throw err;
-    }
+    throw new HttpError(400, 'Code is not valid');
+  }
 
-    const email = (decoded as { email: string }).email;
+  const user = await prisma.user.findUnique({
+    where: { email: decoded.email },
+  });
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+  if (user === null) {
+    throw new HttpError(404, 'User not found');
+  }
 
-    if (user === null) {
-      throw new HttpError(404, 'User not found');
-    }
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-    try {
-      const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-      await prisma.user.update({
-        where: { email },
-        data: { passwordHash: hashedPassword },
-      });
-    } catch (err) {
-      console.error('Failed to reset password:', err);
-      throw err;
-    }
+  await prisma.user.update({
+    where: { email: decoded.email },
+    data: { passwordHash: hashedPassword },
   });
 }
