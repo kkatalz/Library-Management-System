@@ -9,6 +9,7 @@ import type { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
 import type { User } from '../generated/prisma/client';
 import { PasswordResetRequestDTO } from '../schemas/passwordReset.schema';
 import sendMail from '../utils/sendMail';
+import { ResetPasswordDTO } from '../schemas/resetPassword.schema';
 
 export function generateToken(user: User) {
   return jwt.sign(
@@ -123,4 +124,42 @@ export async function requestPasswordReset(dto: PasswordResetRequestDTO) {
   }
 
   return;
+}
+
+export async function resetPassword(dto: ResetPasswordDTO) {
+  const { token, newPassword } = dto;
+
+  jwt.verify(token, CONFIG.jwtSecret, async (err, decoded) => {
+    if (err) {
+      if (err.name === 'JsonWebTokenError')
+        throw new HttpError(400, 'Code is not valid'); // I use 400 because the task says so, but 401 would be more appropriate.
+
+      if (err.name === 'TokenExpiredError')
+        throw new HttpError(400, 'Code is expired');
+
+      throw err;
+    }
+
+    const email = (decoded as { email: string }).email;
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (user === null) {
+      throw new HttpError(404, 'User not found');
+    }
+
+    try {
+      const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+      await prisma.user.update({
+        where: { email },
+        data: { passwordHash: hashedPassword },
+      });
+    } catch (err) {
+      console.error('Failed to reset password:', err);
+      throw err;
+    }
+  });
 }

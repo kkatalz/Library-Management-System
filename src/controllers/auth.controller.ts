@@ -3,6 +3,7 @@ import { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
 import * as AuthService from '../services/auth.service';
 import type { User } from '../generated/prisma/client';
 import { PasswordResetRequestDTO } from '../schemas/passwordReset.schema';
+import { ResetPasswordDTO } from '../schemas/resetPassword.schema';
 
 export async function register(
   req: Request<{}, {}, RegisterDTO>,
@@ -39,9 +40,19 @@ export async function requestPasswordReset(
   res: Response,
 ) {
   await AuthService.requestPasswordReset(req.body);
-  
+
   res.json({
     message:
       'Якщо вказаний email зареєстрований, лист з інструкціями надіслано.',
+  });
+}
+
+export async function resetPassword(
+  req: Request<{}, {}, ResetPasswordDTO>,
+  res: Response,
+) {
+  await AuthService.resetPassword(req.body);
+  res.json({
+    message: 'Пароль успішно змінено.',
   });
 }
