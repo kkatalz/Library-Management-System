@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import multer from 'multer';
 
 export class HttpError extends Error {
   constructor(
@@ -19,6 +20,14 @@ export function errorHandler(
   res: Response,
   next: NextFunction,
 ) {
+  if (err instanceof multer.MulterError) {
+    const message =
+      err.code === 'LIMIT_FILE_SIZE'
+        ? 'File too large. Maximum size is 5 MB'
+        : err.message;
+    return res.status(400).json({ error: message });
+  }
+
   const statusCode = err instanceof HttpError ? err.statusCode : 400;
   res.status(statusCode).json({ error: err.message });
 }
