@@ -71,9 +71,7 @@ export async function login(dto: LoginDTO) {
   if (user === null) {
     throw new HttpError(401, 'Email or password is incorrect');
   }
-  console.log('USER:', user);
 
-  console.log('PASSWORD hash:', user.passwordHash);
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
   if (isPasswordValid !== true) {
