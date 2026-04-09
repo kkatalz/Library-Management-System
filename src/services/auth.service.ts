@@ -56,6 +56,7 @@ export async function register(dto: RegisterDTO) {
       email: user.email,
       name: user.name,
       role: user.role,
+      avatarUrl: user.avatarUrl,
     },
   };
 }
@@ -88,6 +89,7 @@ export async function login(dto: LoginDTO) {
       email: user.email,
       name: user.name,
       role: user.role,
+      avatarUrl: user.avatarUrl,
     },
   };
 }
