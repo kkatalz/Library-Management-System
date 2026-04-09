@@ -14,6 +14,12 @@ const CONFIG = {
   googleClientId: getEnvironmentVariable('CLIENT_ID'),
   googleClientSecret: getEnvironmentVariable('CLIENT_SECRET'),
   googleCallbackUrl: getEnvironmentVariable('GOOGLE_CALLBACK_URL'),
+
+  smtpHost: getEnvironmentVariable('SMTP_HOST'),
+  smtpPort: Number.parseInt(getEnvironmentVariable('SMTP_PORT'), 10),
+  smtpAuthUser: getEnvironmentVariable('SMTP_AUTH_USER'),
+  smtpAuthPass: getEnvironmentVariable('SMTP_AUTH_PASS'),
+  senderEmail: getEnvironmentVariable('SENDER_EMAIL'),
 };
 
 export default CONFIG;

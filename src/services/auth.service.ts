@@ -7,6 +7,8 @@ import CONFIG from '../config';
 import { HttpError } from '../middleware/error';
 import type { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
 import type { User } from '../generated/prisma/client';
+import { PasswordResetRequestDTO } from '../schemas/passwordReset.schema';
+import sendMail from '../utils/sendMail';
 
 export function generateToken(user: User) {
   return jwt.sign(
@@ -67,7 +69,9 @@ export async function login(dto: LoginDTO) {
   if (user === null) {
     throw new HttpError(401, 'Email or password is incorrect');
   }
+  console.log('USER:', user);
 
+  console.log('PASSWORD hash:', user.passwordHash);
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
 
   if (isPasswordValid !== true) {
@@ -85,4 +89,38 @@ export async function login(dto: LoginDTO) {
       role: user.role,
     },
   };
+}
+
+export async function requestPasswordReset(dto: PasswordResetRequestDTO) {
+  const { email } = dto;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (user) {
+    const resetToken = jwt.sign({ email: user.email }, CONFIG.jwtSecret, {
+      expiresIn: '15m',
+    });
+
+    try {
+      await sendMail({
+        to: user.email,
+        subject: 'Reset password',
+        text: `To reset password please open this link: http://localhost:8080/api/auth/reset-password?token=${resetToken}`,
+        html: `<p>To reset password please open this <a href="http://localhost:8080/api/auth/reset-password?token=${resetToken}">link</a></p>`,
+      });
+      console.log(
+        'Email sent successfully to:',
+        user.email,
+        'From:',
+        CONFIG.senderEmail,
+      );
+    } catch (err) {
+      console.error('Failed to send email:', err);
+      throw err;
+    }
+  }
+
+  return;
 }

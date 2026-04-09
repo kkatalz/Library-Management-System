@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { RegisterDTO, LoginDTO } from '../schemas/auth.schema';
 import * as AuthService from '../services/auth.service';
 import type { User } from '../generated/prisma/client';
+import { PasswordResetRequestDTO } from '../schemas/passwordReset.schema';
 
 export async function register(
   req: Request<{}, {}, RegisterDTO>,
@@ -30,5 +31,17 @@ export function googleCallback(req: Request, res: Response) {
         role: user.role,
       },
     },
+  });
+}
+
+export async function requestPasswordReset(
+  req: Request<{}, {}, PasswordResetRequestDTO>,
+  res: Response,
+) {
+  await AuthService.requestPasswordReset(req.body);
+  
+  res.json({
+    message:
+      'Якщо вказаний email зареєстрований, лист з інструкціями надіслано.',
   });
 }
